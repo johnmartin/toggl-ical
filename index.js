@@ -40,8 +40,6 @@ const findProject = (projects, summary) => {
 }
 
 (async () => {
-  const calendars = JSON.parse(ICAL)
-
   let dateCheck = []
   let dateAdd = []
 
@@ -85,32 +83,29 @@ const findProject = (projects, summary) => {
     console.log('>>', 'from:', from.calendar(), 'to:', to.calendar())
   )
 
-  console.log('> Reading calendars')
-  for (const calendar of calendars) {
-    console.log('>>', calendar)
-    const data = await fetch(calendar).then(d => d.text())
-    const cal = ical.parse(data)
-    const comp = new ical.Component(cal)
-    const events = comp.getAllSubcomponents('vevent')
-    for (const event of events) {
-      const summary = event.getFirstPropertyValue('summary')
-      const start = moment(new Date(event.getFirstPropertyValue('dtstart')))
-      const end = moment(new Date(event.getFirstPropertyValue('dtend')))
-      for (const date of dateCheck) {
-        if (
-          start.isBetween(date.from, date.to) &&
-          end.isBetween(date.from, date.to)
-        ) {
-          const project = findProject(projects, summary) || defaultProject
-          dateAdd.push({
-            description: summary,
-            created_with: 'API',
-            start: start.format(),
-            duration: end.diff(start, 'seconds'),
-            pid: project,
-            billable: project !== defaultProject
-          })
-        }
+  console.log('>', ICAL)
+  const data = await fetch(ICAL).then(d => d.text())
+  const cal = ical.parse(data)
+  const comp = new ical.Component(cal)
+  const events = comp.getAllSubcomponents('vevent')
+  for (const event of events) {
+    const summary = event.getFirstPropertyValue('summary')
+    const start = moment(new Date(event.getFirstPropertyValue('dtstart')))
+    const end = moment(new Date(event.getFirstPropertyValue('dtend')))
+    for (const date of dateCheck) {
+      if (
+        start.isBetween(date.from, date.to) &&
+        end.isBetween(date.from, date.to)
+      ) {
+        const project = findProject(projects, summary) || defaultProject
+        dateAdd.push({
+          description: summary,
+          created_with: 'API',
+          start: start.format(),
+          duration: end.diff(start, 'seconds'),
+          pid: project,
+          billable: project !== defaultProject
+        })
       }
     }
   }
