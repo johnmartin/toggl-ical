@@ -50,12 +50,21 @@ const findProject = (projects, summary) => {
   console.log('> Projects:')
   projects.map(({ id, name }) => console.log('>>', id, name))
 
+  console.log(time)
+
   console.log('> Building list of dates to look at')
   const when = compromise(time).dates().data()
   for (const x of when) {
-    if (x.date) {
+    if (x.date || x.normal) {
       const { month, date, weekday, year, named, time } = x.date
-      if (named === 'today') {
+      if (x.normal) {
+        const normal = x.normal.split('/').map(x => parseInt(x))
+        const when = new Date(normal[2], normal[1] - 1, normal[0])
+        dateCheck.push({
+          from: moment(when).startOf('day'),
+          to: moment(when).endOf('day')
+        })
+      } else if (named === 'today') {
         dateCheck.push({
           from: moment().startOf('day'),
           to: moment().endOf('day')
